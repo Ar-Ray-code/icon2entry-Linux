@@ -39,10 +39,15 @@ source "${args_source}"
 unset PROGNAME args_source
 # ---------------------------------------------------------------------------
 
+# icon found (not \n only)
 ICON_PATH=`realpath ${icon}`
 ENTRY_POINT_PATH=`realpath ${entry_bash}`
-APP_BIN_PATH=${bin_path}
 INSTALL_PATH=`realpath ${install_path}`
+
+APP_BIN_PATH=${bin_path}
+
+SCRIPT_DIR=`dirname ${ENTRY_POINT_PATH}`
+SCRIPT_USER=`stat -c %U ${SCRIPT_DIR}`
 
 if [ -z ${APP_BIN_PATH} ]; then
     APP_BIN_PATH="/usr/local/bin"
@@ -50,6 +55,10 @@ fi
 
 if [ -z ${INSTALL_PATH} ]; then
     INSTALL_PATH=/home/${SCRIPT_USER}/".app"
+fi
+
+if [ -z ${ICON_PATH} ]; then
+    ICON_PATH=${SCRIPT_DIR}/icon.png
 fi
 
 if [ "${uninstall}" = "/bin/true" ]; then
@@ -64,15 +73,13 @@ fi
 
 
 # automatic setting env -----------------------------------------
-SCRIPT_DIR=`dirname ${ENTRY_POINT_PATH}`
-SCRIPT_USER=`stat -c %U ${SCRIPT_DIR}`
-
-APP_NAME=$(basename ${ENTRY_POINT_PATH} .bash)
+ENTRYPOINT_BASENAME=`basename ${ENTRY_POINT_PATH}`
+APP_NAME=${ENTRYPOINT_BASENAME%.*}
 APPLICATION_DIR=${INSTALL_PATH}/${APP_NAME}
 
 APPLICATION_ENTRY_DIR=/home/${SCRIPT_USER}/.local/share/applications/
 SHORTCUT_LINK_ENTRY_POINT=/home/${SCRIPT_USER}/Desktop/${APP_NAME}.desktop
-ENTRY_POINT=${APPLICATION_DIR}/`basename ${ENTRY_POINT_PATH}`
+ENTRY_POINT=${APPLICATION_DIR}/${ENTRYPOINT_BASENAME}
 DOT_DESKTOP=${APPLICATION_ENTRY_DIR}${APP_NAME}.desktop
 
 ## Exit ---------------------------------------------------
@@ -101,27 +108,25 @@ if [ ! -d /home/${SCRIPT_USER}/Desktop ]; then
     exit 1
 fi
 
-echo "----------------------------------------"
-echo "        ${APP_NAME} properties"
-echo "----------------------------------------"
 echo ""
-echo "------------ your args  ------------------"
+echo "==================================================="
+echo "        APP Name : ${APP_NAME}"
+echo "---------------------------------------------------"
 echo "ICON_PATH: ${ICON_PATH} -> ${APPLICATION_DIR}/`basename ${ICON_PATH}`"
 echo "ENTRY_POINT_PATH: ${ENTRY_POINT_PATH}"
 echo "APP_BIN_PATH: ${APP_BIN_PATH}"
 echo ""
-echo "--------- Desktop entry ------------"
+echo "--------- Desktop entry ---------------------------"
 echo ".desktop app   : ${DOT_DESKTOP}"
 echo "~/Desktop app  : ${SHORTCUT_LINK_ENTRY_POINT}"
 echo "CLI entry point: ${ENTRY_POINT} -> ${APP_BIN_PATH}/${APP_NAME} (symlink)"
 echo ""
-echo "----------------------------------------"
-echo ""
 echo "COPY: ${SCRIPT_DIR}/* -> ${APPLICATION_DIR}/*"
 echo ""
-echo "-------------- flags ---------------------"
+echo "-------------- flags ------------------------------"
 echo "UNINSTALL_FLAG: ${UNINSTALL_FLAG}"
 echo "TERMINAL_FLAG: ${TERMINAL_FLAG}"
+echo "==================================================="
 echo ""
 
 # if not found
@@ -148,6 +153,7 @@ fi
 chmod +x ${ENTRY_POINT}
 sudo ln -s ${ENTRY_POINT} ${APP_BIN_PATH}/${APP_NAME}
 
+rm ${DOT_DESKTOP}
 # create .desktop file ------------------------------------
 echo "#!/usr/bin/env xdg-open"                          >> ${DOT_DESKTOP}
 echo "[Desktop Entry]"                                  >> ${DOT_DESKTOP}
@@ -166,6 +172,7 @@ echo "Path=${APPLICATION_DIR}/"                         >> ${DOT_DESKTOP}
 cp ${DOT_DESKTOP} ${SHORTCUT_LINK_ENTRY_POINT}
 
 # allow launching
-gio set ${SHORTCUT_LINK_ENTRY_POINT} metadata::trusted true
-chmod a+x ${SHORTCUT_LINK_ENTRY_POINT}
-echo "===== Installed ====="
+chmod a+x ${SHORTCUT_LINK_ENTRY_POINT} ${DOT_DESKTOP}
+gio set ${SHORTCUT_LINK_ENTRY_POINT} metadata::trusted yes
+echo ""
+echo "Installed"
