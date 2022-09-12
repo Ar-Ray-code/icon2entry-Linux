@@ -9,6 +9,7 @@ Entry point generator for bash that provides a Desktop app-like experience
 
 ```bash
 # git clone https://github.com/Ar-Ray-code/icon2entry-Linux.git
+cd icon2entry-Linux/
 sudo bash icon2entry_linux.bash --entry_bash ./entrypoint.bash -t
 ```
 
