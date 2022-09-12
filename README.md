@@ -32,8 +32,6 @@ After running command, you can find desktop entrypoint named `entrypoint`.
 
 You can click this to run `entrypoint.bash`.
 
-`entrypoint.bash` is only showing `"hello world"` string.
-
 When you run `entrypoint.bash`, showing only the string `"hello world"`. (5 sec elapsed, this terminal window will be closed.)
 
 ![](image_readme/hello_world.png)
